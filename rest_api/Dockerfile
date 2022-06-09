@@ -26,25 +26,42 @@ RUN echo "deb http://repo.sawtooth.me/ubuntu/nightly bionic universe" >> /etc/ap
  || apt-key adv --keyserver hkp://p80.pool.sks-keyservers.net:80 --recv-keys 44FC67F19B2466EA) \
  && apt-get update
 
+
 RUN apt-get install -y -q \
     git \
-    python3 \
-    python3-stdeb
+    python3.8 \
+    python3-pip \
+    python3-stdeb \
+    pkg-config
 
-RUN apt-get install -y -q \
-    python3-grpcio \
-    python3-grpcio-tools \
-    python3-protobuf
+RUN apt-get update -qq \
+    && apt-get install -y -qq python3.8
 
-RUN apt-get install -y -q \
-    python3-sawtooth-sdk
+RUN rm /usr/bin/python3 \
+ && ln -s /usr/bin/python3.8 /usr/bin/python \
+ && ln -s /usr/bin/python3.8 /usr/bin/python3 \
+ && ln -s /usr/bin/python3.8 /usr/local/bin/python \
+ && ln -s /usr/bin/python3.8 /usr/local/bin/python3 \
+ && apt-get install -y \
+    python3-pip \
+    python-dev \
+    python3.8-dev \
+ && python3 -m pip install pip --upgrade
+
+RUN python3 -m pip install \
+    grpcio \
+    grpcio-tools \
+    protobuf \
+    pyformance \
+    cchardet
+
+RUN python3 -m pip install --upgrade setuptools
+
 
 RUN apt-get install -y -q \
     python3-aiodns \
     python3-aiohttp \
     python3-colorlog \
-    python3-cchardet\
-    python3-pyformance \
     python3-toml \
     python3-yaml \
     python3-zmq
