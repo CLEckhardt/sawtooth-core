@@ -28,18 +28,37 @@ RUN echo "deb http://repo.sawtooth.me/ubuntu/nightly bionic universe" >> /etc/ap
 
 RUN apt-get install -y -q \
     git \
-    python3 \
-    python3-stdeb
+    python3.8 \
+    python3-pip \
+    python3-stdeb \
+    pkg-config
 
-RUN apt-get install -y -q \
-    python3-grpcio \
-    python3-grpcio-tools \
-    python3-protobuf
+RUN apt-get update -qq \
+    && apt-get install -y -qq python3.8
 
-RUN apt-get install -y -q \
-    python3-sawtooth-sdk
+RUN rm /usr/bin/python3 \
+ && ln -s /usr/bin/python3.8 /usr/bin/python \
+ && ln -s /usr/bin/python3.8 /usr/bin/python3 \
+ && ln -s /usr/bin/python3.8 /usr/local/bin/python \
+ && ln -s /usr/bin/python3.8 /usr/local/bin/python3 \
+ && apt-get install -y \
+    python3-pip \
+    python-dev \
+    python3.8-dev \
+ && python3 -m pip install pip --upgrade
 
-RUN apt-get install -y -q \
+RUN python3 -m pip install \
+    grpcio \
+    grpcio-tools \
+    protobuf
+
+RUN python3 -m pip install --upgrade setuptools
+
+RUN python3 -m pip install \
+    sawtooth-sdk
+
+RUN apt-get update \
+ && apt-get install -y \
     libssl-dev \
     libzmq3-dev \
     openssl \
@@ -51,12 +70,16 @@ RUN apt-get install -y -q \
     python3-dev \
     python3-lmdb \
     python3-netifaces \
-    python3-pyformance \
-    python3-secp256k1 \
     python3-toml \
     python3-yaml \
     python3-zmq \
+    protobuf-compiler \
     unzip
+
+RUN python3 -m pip install \
+    pyformance \
+    secp256k1 \
+    netifaces
 
 RUN curl -OLsS https://github.com/google/protobuf/releases/download/v3.5.1/protoc-3.5.1-linux-x86_64.zip \
  && unzip protoc-3.5.1-linux-x86_64.zip -d protoc3 \
@@ -68,8 +91,6 @@ RUN curl https://sh.rustup.rs -sSf > /usr/bin/rustup-init \
 
 ENV PATH=$PATH:/project/sawtooth-core/bin:/protoc3/bin:/project/sawtooth-core/bin:/root/.cargo/bin \
     CARGO_INCREMENTAL=0
-
-RUN ln -s /usr/bin/python3 /usr/bin/python
 
 RUN mkdir -p /etc/sawtooth/keys
 RUN mkdir -p /var/lib/sawtooth

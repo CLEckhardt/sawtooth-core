@@ -16,26 +16,26 @@ version: '3.6'
 
 services:
 
-  client:
-    build:
-      context: .
-      dockerfile: docker/sawtooth-shell
-      args:
-        - http_proxy
-        - https_proxy
-        - no_proxy
-    image: sawtooth-shell-local:${ISOLATION_ID}
-    volumes:
-      - ./:/project/sawtooth-core
-    container_name: sawtooth-shell-local
-    depends_on:
-      - validator
-    command: |
-      bash -c "
-        sawtooth keygen &&
-        tail -f /dev/null
-      "
-    stop_signal: SIGKILL
+#  client:
+#    build:
+#      context: .
+#      dockerfile: docker/sawtooth-shell
+#      args:
+#        - http_proxy
+#        - https_proxy
+#        - no_proxy
+#    image: sawtooth-shell-local:${ISOLATION_ID}
+#    volumes:
+#      - ./:/project/sawtooth-core
+#    container_name: sawtooth-shell-local
+#    depends_on:
+#      - validator
+#    command: |
+#      bash -c "
+#        sawtooth keygen &&
+#        tail -f /dev/null
+#      "
+#    stop_signal: SIGKILL
 
 
   validator:
@@ -65,6 +65,8 @@ services:
         python3 setup.py build
         mkdir -p bin
         mkdir -p lib
+        python3 -m pip uninstall -y netifaces lmdb
+        python3 -m pip install netifaces lmdb
         cargo build --release
         cp ./target/release/sawtooth-validator bin/sawtooth-validator
         cp ./target/release/libsawtooth_validator.so lib/libsawtooth_validator.so
@@ -84,41 +86,43 @@ services:
             --bind network:tcp://eth0:8800 \
             --bind consensus:tcp://eth0:5050 \
       "
+      
+#        ls /usr/lib/python3/dist-packages
     stop_signal: SIGKILL
 
 
-  rest-api:
-    build:
-      context: .
-      dockerfile: rest_api/Dockerfile
-      args:
-        - http_proxy
-        - https_proxy
-        - no_proxy
-    image: sawtooth-rest-api-local:${ISOLATION_ID}
-    volumes:
-      - ./:/project/sawtooth-core
-    container_name: sawtooth-rest-api-local
-    ports:
-      - "8008:8008"
-    depends_on:
-      - validator
-    command: |
-      bash -c "
-        bin/protogen
-        cd rest_api
-        python3 setup.py clean --all
-        python3 setup.py build
-        sawtooth-rest-api -v --connect tcp://validator:4004 --bind rest-api:8008
-      "
-    stop_signal: SIGKILL
+#  rest-api:
+#    build:
+#      context: .
+#      dockerfile: rest_api/Dockerfile
+#      args:
+#        - http_proxy
+#        - https_proxy
+#        - no_proxy
+#    image: sawtooth-rest-api-local:${ISOLATION_ID}
+#    volumes:
+#      - ./:/project/sawtooth-core
+#    container_name: sawtooth-rest-api-local
+#    ports:
+#      - "8008:8008"
+#    depends_on:
+#      - validator
+#    command: |
+#      bash -c "
+#        bin/protogen
+#        cd rest_api
+#        python3 setup.py clean --all
+#        python3 setup.py build
+#        sawtooth-rest-api -v --connect tcp://validator:4004 --bind rest-api:8008
+#      "
+#    stop_signal: SIGKILL
 
 
-  devmode-rust:
-    image: hyperledger/sawtooth-devmode-engine-rust:nightly
-    container_name: sawtooth-devmode-engine-rust
-    depends_on:
-      - validator
-    command: |
-        devmode-engine-rust -v --connect tcp://validator:5050
-    stop_signal: SIGKILL
+#  devmode-rust:
+#    image: hyperledger/sawtooth-devmode-engine-rust:nightly
+#    container_name: sawtooth-devmode-engine-rust
+#    depends_on:
+#      - validator
+#    command: |
+#        devmode-engine-rust -v --connect tcp://validator:5050
+#    stop_signal: SIGKILL
