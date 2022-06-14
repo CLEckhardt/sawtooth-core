@@ -37,9 +37,7 @@ RUN apt-get update -qq \
     && apt-get install -y -qq python3.8
 
 RUN rm /usr/bin/python3 \
- && ln -s /usr/bin/python3.8 /usr/bin/python \
  && ln -s /usr/bin/python3.8 /usr/bin/python3 \
- && ln -s /usr/bin/python3.8 /usr/local/bin/python \
  && ln -s /usr/bin/python3.8 /usr/local/bin/python3 \
  && apt-get install -y \
     python3-pip \

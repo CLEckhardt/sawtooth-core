@@ -29,23 +29,20 @@ RUN echo "deb http://repo.sawtooth.me/ubuntu/nightly bionic universe" >> /etc/ap
 
 RUN apt-get install -y -q \
     git \
-    python3.8 \
     python3-pip \
     python3-stdeb \
     pkg-config
 
 RUN apt-get update -qq \
-    && apt-get install -y -qq python3.8
+    && apt-get install -y -qq python3.7
 
 RUN rm /usr/bin/python3 \
- && ln -s /usr/bin/python3.8 /usr/bin/python \
- && ln -s /usr/bin/python3.8 /usr/bin/python3 \
- && ln -s /usr/bin/python3.8 /usr/local/bin/python \
- && ln -s /usr/bin/python3.8 /usr/local/bin/python3 \
+ && ln -s /usr/bin/python3.7 /usr/bin/python3 \
+ && ln -s /usr/bin/python3.7 /usr/local/bin/python3 \
  && apt-get install -y \
     python3-pip \
     python-dev \
-    python3.8-dev \
+    python3.7-dev \
  && python3 -m pip install pip --upgrade
 
 RUN python3 -m pip install \

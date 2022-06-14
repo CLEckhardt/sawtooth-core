@@ -34,7 +34,7 @@ setup(
     url='https://github.com/hyperledger/sawtooth-core',
     packages=find_packages(),
     install_requires=[
-        'colorlog', 'protobuf', 'sawtooth-sdk', 'toml', 'PyYAML',
+        'colorlog', 'protobuf', 'toml', 'PyYAML',
         'requests'
     ],
     data_files=data_files,

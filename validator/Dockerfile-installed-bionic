@@ -32,25 +32,29 @@ RUN echo "deb http://repo.sawtooth.me/ubuntu/nightly bionic universe" >> /etc/ap
     libzmq3-dev \
     openssl \
     pkg-config \
-    python3.8 \
     python3-cachetools \
     python3-dev \
     python3-stdeb \
     python3-toml \
-    unzip
+    protobuf-compiler \
+    unzip \
+    debhelper \
+    dh-python
 
 RUN apt-get update -qq \
-    && apt-get install -y -qq python3.8
+    && apt-get install -y -qq python3.7 python3.6
 
 RUN rm /usr/bin/python3 \
- && ln -s /usr/bin/python3.8 /usr/bin/python \
- && ln -s /usr/bin/python3.8 /usr/bin/python3 \
- && ln -s /usr/bin/python3.8 /usr/local/bin/python \
- && ln -s /usr/bin/python3.8 /usr/local/bin/python3 \
+ && ln -s /usr/bin/python3.7 /usr/bin/python3 \
+ && ln -s /usr/bin/python3.7 /usr/local/bin/python3 \
  && apt-get install -y \
     python3-pip \
     python-dev \
-    python3.8-dev \
+    python3.7-dev \
+    libpython3.7 \
+    python3-all \
+    python3-dev \
+    python3-all-dev \
  && python3 -m pip install pip --upgrade
 
 RUN python3 -m pip install --upgrade setuptools
@@ -60,12 +64,13 @@ RUN python3 -m pip install \
     grpcio-tools \
     protobuf
 
-RUN python3 -m pip install \
-    sawtooth-sdk
+RUN python3.7 -m pip install \
+    pyformance \
+    secp256k1 \
+    netifaces
 
 RUN python3 -m pip install \
-    pyformance \
-    secp256k1
+    sawtooth-sdk
 
 RUN curl -OLsS https://github.com/google/protobuf/releases/download/v3.5.1/protoc-3.5.1-linux-x86_64.zip \
  && unzip protoc-3.5.1-linux-x86_64.zip -d protoc3 \
@@ -83,10 +88,8 @@ COPY . /project
 RUN /project/bin/protogen \
  && cd /project/validator \
  && if [ -d "debian" ]; then rm -rf debian; fi \
- && python3 setup.py clean --all
-RUN cd /project/validator \
- && python3 setup.py --command-packages=stdeb.command debianize
-RUN cd /project/validator \
+ && python3 setup.py clean --all \
+ && python3 setup.py --command-packages=stdeb.command debianize \
  && if [ -d "packaging/ubuntu" ]; then cp -R packaging/ubuntu/* debian/; fi \
  && if [ -d "bin" ]; then rm -rf bin; fi \
  && mkdir bin \
@@ -95,9 +98,19 @@ RUN cd /project/validator \
  && sed -i -e "0,/version.*$/ s/version.*$/version\ =\ \"$(../bin/get_version)\"/" Cargo.toml \
  && cargo build --release \
  && cp ./target/release/sawtooth-validator bin/sawtooth-validator \
- && cp ./target/release/libsawtooth_validator.so lib/libsawtooth_validator.so \
- && dpkg-buildpackage -b -rfakeroot -us -uc
+ && cp ./target/release/libsawtooth_validator.so lib/libsawtooth_validator.so
 
+# Switch back to python 3.6 for dpkg-buildpackage
+RUN rm /usr/bin/python3 \
+ && ln -s /usr/bin/python3.6 /usr/bin/python3
+
+RUN python3.6 -m pip install setuptools
+
+# Must run after setuptools is installed
+RUN python3.6 -m pip install pyformance
+
+RUN cd /project/validator \
+ && dpkg-buildpackage -b -rfakeroot -us -uc
 
 # -------------=== cli build ===-------------
 FROM ubuntu:bionic as sawtooth-cli-builder
@@ -113,31 +126,32 @@ RUN echo "deb http://repo.sawtooth.me/ubuntu/nightly bionic universe" >> /etc/ap
  && apt-get update \
  && apt-get install -y -q \
     git \
-    python3.8 \
     python3-stdeb \
     python3-toml \
     pkg-config
 
 RUN apt-get update -qq \
-    && apt-get install -y -qq python3.8
+    && apt-get install -y -qq python3.6 python3.7
 
 RUN rm /usr/bin/python3 \
- && ln -s /usr/bin/python3.8 /usr/bin/python \
- && ln -s /usr/bin/python3.8 /usr/bin/python3 \
- && ln -s /usr/bin/python3.8 /usr/local/bin/python \
- && ln -s /usr/bin/python3.8 /usr/local/bin/python3 \
+ && ln -s /usr/bin/python3.6 /usr/bin/python3 \
+ && ln -s /usr/bin/python3.6 /usr/local/bin/python3 \
  && apt-get install -y \
     python3-pip \
     python-dev \
-    python3.8-dev \
+    python3.6-dev \
+    python3-netifaces \
  && python3 -m pip install pip --upgrade
+
+RUN python3 -m pip install --upgrade setuptools
 
 RUN python3 -m pip install \
     pyformance \
     sawtooth-sdk \
     grpcio \
     grpcio-tools \
-    protobuf
+    protobuf \
+    netifaces
 
 COPY . /project
 
@@ -159,11 +173,11 @@ RUN apt-get update \
 
 COPY --from=sawtooth-cli-builder /project/python3-sawtooth-cli*.deb /tmp
 
-COPY --from=sawtooth-validator-builder /project/python3-sawtooth-validator*.deb /tmp
+COPY --from=sawtooth-validator-builder /project/sawtooth-validator*.deb /tmp
 
 RUN echo "deb http://repo.sawtooth.me/ubuntu/nightly bionic universe" >> /etc/apt/sources.list \
  && (apt-key adv --keyserver hkp://keyserver.ubuntu.com:80 --recv-keys 44FC67F19B2466EA \
  || apt-key adv --keyserver hkp://p80.pool.sks-keyservers.net:80 --recv-keys 44FC67F19B2466EA) \
  && apt-get update \
- && dpkg -i /tmp/python3-sawtooth-*.deb || true \
+ && dpkg -i /tmp/*sawtooth-*.deb || true \
  && apt-get -f -y install
