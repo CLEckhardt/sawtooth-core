@@ -19,7 +19,7 @@ services:
   validator:
     build:
       context: .
-      dockerfile: validator/Dockerfile-installed-${DISTRO}
+      dockerfile: validator/Dockerfile-installed-bionic
       args:
         - http_proxy
         - https_proxy

@@ -23,12 +23,7 @@ import subprocess
 import sys
 
 
-try:
-    from grpc.tools.protoc import main as _protoc
-except ImportError:
-    print("Error: grpc.tools.protoc not found")
-    exit(1)
-
+from grpc.tools.protoc import main as _protoc
 
 JOIN = os.path.join
 TOP_DIR = os.path.dirname(os.path.dirname(os.path.realpath(__file__)))

@@ -39,6 +39,7 @@ setup(
     version=subprocess.check_output(
         ['../bin/get_version']).decode('utf-8').strip(),
     description='Sawtooth REST API',
+    long_description='Sawtooth REST API',
     author='Hyperledger Sawtooth',
     url='https://github.com/hyperledger/sawtooth-core',
     packages=find_packages(),

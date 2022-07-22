@@ -109,6 +109,11 @@ RUN python3.6 -m pip install setuptools
 # Must run after setuptools is installed
 RUN python3.6 -m pip install pyformance
 
+RUN rm /usr/bin/python3 \
+ && rm /usr/local/bin/python3 \
+ && ln -s /usr/bin/python3.7 /usr/bin/python3 \
+ && ln -s /usr/bin/python3.7 /usr/local/bin/python3
+
 RUN cd /project/validator \
  && dpkg-buildpackage -b -rfakeroot -us -uc
 
