@@ -33,7 +33,7 @@ services:
   validator:
     build:
       context: .
-      dockerfile: validator/Dockerfile-installed-${DISTRO}
+      dockerfile: validator/Dockerfile-installed-bionic
       args:
         - http_proxy
         - https_proxy
@@ -65,7 +65,7 @@ services:
   rest-api:
     build:
       context: .
-      dockerfile: rest_api/Dockerfile-installed-${DISTRO}
+      dockerfile: rest_api/Dockerfile-installed-bionic
       args:
         - http_proxy
         - https_proxy

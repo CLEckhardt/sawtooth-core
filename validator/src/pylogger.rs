@@ -29,7 +29,7 @@ pub fn set_up_logger(verbosity: u64, py: Python) {
 
     let server_log = py
         .import("sawtooth_validator.server.log")
-        .map_err(|err| err.print(py))
+        .map_err(|err| error!("{:?}", err))
         .unwrap();
 
     server_log

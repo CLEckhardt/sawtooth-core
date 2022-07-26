@@ -32,9 +32,9 @@ RUN echo "deb http://repo.sawtooth.me/ubuntu/nightly bionic universe" >> /etc/ap
     python3-protobuf \
     python3-stdeb \
     python3-toml \
-    python3-grpcio-tools \
-    python3-grpcio \
-    python3-sawtooth-sdk
+    python3-pip
+
+RUN python3 -m pip install grpcio grpcio-tools sawtooth-sdk
 
 COPY . /project
 
